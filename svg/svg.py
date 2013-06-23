@@ -1,4 +1,4 @@
-import cairosvg
+# import cairosvg
 from xml.etree import ElementTree
 import re
 
@@ -17,7 +17,7 @@ class SvgImage():
         else:
             raise TypeError("Must be file object or string")
         parsed_svg = ElementTree.fromstring(self.__source)
-        self.__root = parsed_svg.getroot()
+        self.__root = parsed_svg
         self.__elements = self.__root.iter()
         temp_re = re.match("^{.*?}", self.__root.tag)
         self.__xlmns = temp_re.group() if temp_re else {}
