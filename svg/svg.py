@@ -2,6 +2,7 @@
 from xml.etree import ElementTree
 import re
 
+COLORS_ATTR = {'fill': 'fill-opacity', 'stroke': 'stroke-opacity'}
 
 class SvgImage():
     """
@@ -40,13 +41,13 @@ class SvgImage():
         Return a list of dicts with color, type of color, tag and id of element.
         """
         res = []
-        colors_attrib = [('fill', 'fill-opacity'), ('stroke', 'stroke-opacity')]
+
         for el in self.__elements:
-            for attr in colors_attrib:
-                if el.attrib.get(attr[1], '100') != '0' and el.attrib.get(attr[0]):
-                    res.append({'color': el.attrib[attr[0]],
-                                'type': attr[0],
+            for attr, attr_opacity in COLORS_ATTR.items():
+                if (el.attrib.get(attr_opacity, '100') != '0' and
+                        el.attrib.get(attr)):
+                    res.append({'color': el.attrib[attr],
+                                'type': attr,
                                 'tag': el.tag.replace(self.__xlmns, ''),
                                 'id': el.attrib.get('id', '')})
         return res
-
