@@ -3,7 +3,7 @@ from svg import SvgImage
 from svg.tests import tools
 
 
-class CreateSvgImageInstanceTestCase(unittest.TestCase):
+class CreateInstanceTestCase(unittest.TestCase):
 
     def test_from_file(self):
         f = tools.get_svg_file()
@@ -15,8 +15,12 @@ class CreateSvgImageInstanceTestCase(unittest.TestCase):
         icon = SvgImage(t)
         self.assertIsInstance(icon, SvgImage)
 
+    def test_with_filename(self):
+        icon = SvgImage(filename="./svg_icon.svg")
+        self.assertIsInstance(icon, SvgImage)
 
-class CreateSvgImageDataTestCase(unittest.TestCase):
+
+class CreateInstanceDataTestCase(unittest.TestCase):
 
     def setUp(self):
         self.icon = SvgImage(tools.get_svg_file())

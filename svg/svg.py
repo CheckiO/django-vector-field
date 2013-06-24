@@ -18,7 +18,7 @@ class SvgImage():
     For parsing and changing using simple xml parsing.
     """
 
-    def __init__(self, source, filename=None):
+    def __init__(self, source=None, filename=None):
         """
         Create instance from file object or from text
         """
@@ -88,7 +88,7 @@ class SvgImage():
         """
         self, float, float -> self
         Method for resize image.
-        Width and height multiply at scale cooficent.
+        Width and height multiply at scale coefficient.
         """
         root_width, root_height = self.get_size()
         self.__root.set("width", str(root_width * scale_width))
