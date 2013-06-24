@@ -18,10 +18,13 @@ class SvgImage():
     For parsing and changing using simple xml parsing.
     """
 
-    def __init__(self, source):
+    def __init__(self, source, filename=None):
         """
         Create instance from file object or from text
         """
+        if filename:
+            with open(filename) as f:
+                source = f.read()
         if type(source) == file:
             self.__source = source.read()
         elif type(source) in (str, unicode, basestring):
@@ -37,6 +40,11 @@ class SvgImage():
     def get_svg_text(self):
         """Return text representation of svg"""
         return DOCTYPE + ElementTree.tostring(self.__root, method="html")
+
+    def get_svg_file(self, filename):
+        """Save svg in file"""
+        with open(filename, "w") as f:
+            f.write(self.get_svg_text())
 
     def get_size(self):
         """self -> (int, int)
