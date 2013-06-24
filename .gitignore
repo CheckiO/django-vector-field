@@ -1,0 +1,3 @@
+*.pyc
+.idea
+svg/tests/result_svg.svg
