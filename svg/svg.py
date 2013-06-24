@@ -4,6 +4,7 @@ import re
 
 COLORS_ATTR = {'fill': 'fill-opacity', 'stroke': 'stroke-opacity'}
 
+
 class SvgImage():
     """
     The class for working with images in svg format.
@@ -11,6 +12,9 @@ class SvgImage():
     """
 
     def __init__(self, source):
+        """
+        Create instance from file object or from text
+        """
         if type(source) == file:
             self.__source = source.read()
         elif type(source) in (str, unicode, basestring):
@@ -19,7 +23,6 @@ class SvgImage():
             raise TypeError("Must be file object or string")
         parsed_svg = ElementTree.fromstring(self.__source)
         self.__root = parsed_svg
-        self.__elements = self.__root.iter()
         temp_re = re.match("^{.*?}", self.__root.tag)
         self.__xlmns = temp_re.group() if temp_re else {}
 
@@ -42,7 +45,7 @@ class SvgImage():
         """
         res = []
 
-        for el in self.__elements:
+        for el in self.__root.iter():
             for attr, attr_opacity in COLORS_ATTR.items():
                 if (el.attrib.get(attr_opacity, '100') != '0' and
                         el.attrib.get(attr)):
@@ -51,3 +54,16 @@ class SvgImage():
                                 'tag': el.tag.replace(self.__xlmns, ''),
                                 'id': el.attrib.get('id', '')})
         return res
+
+    def change_colors(self, colors_translate):
+        """self, dict -> self.
+        Change colors inside Svg with translation dict.
+        Translation colors dict: key is original color, value is which to set.
+        Colors are strings.
+        """
+        from_colors = colors_translate.keys()
+        for el in self.__root.iter():
+            for attr in COLORS_ATTR.keys():
+                color = el.attrib.get(attr)
+                if color in from_colors:
+                    el.set(attr, colors_translate[color])
