@@ -3,7 +3,9 @@ from xml.etree import ElementTree
 import re
 
 COLORS_ATTR = {'fill': 'fill-opacity', 'stroke': 'stroke-opacity'}
-
+DOCTYPE = """<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+"""
 
 class SvgImage():
     """
@@ -21,14 +23,14 @@ class SvgImage():
             self.__source = source
         else:
             raise TypeError("Must be file object or string")
-        parsed_svg = ElementTree.fromstring(self.__source)
+        parsed_svg = ElementTree.XML(self.__source)
         self.__root = parsed_svg
         temp_re = re.match("^{.*?}", self.__root.tag)
         self.__xlmns = temp_re.group() if temp_re else {}
 
     def get_svg_text(self):
         """Return text representation of svg"""
-        return self.__source
+        return DOCTYPE + ElementTree.tostring(self.__root)
 
     def get_size(self):
         """self -> (int, int)
