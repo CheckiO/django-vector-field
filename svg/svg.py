@@ -1,4 +1,8 @@
-# import cairosvg
+try:
+    import cairosvg
+except ImportError:
+    cairosvg = None
+
 from xml.etree import ElementTree
 import re
 
@@ -6,6 +10,7 @@ COLORS_ATTR = {'fill': 'fill-opacity', 'stroke': 'stroke-opacity'}
 DOCTYPE = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 """
+
 
 class SvgImage():
     """
