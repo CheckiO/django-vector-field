@@ -1,2 +1,2 @@
 cairosvg
-py2cairo
+pycairo

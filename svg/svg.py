@@ -32,10 +32,11 @@ class SvgImage():
         self.__root = parsed_svg
         temp_re = re.match("^{.*?}", self.__root.tag)
         self.__xlmns = temp_re.group() if temp_re else {}
+        ElementTree.register_namespace("", "http://www.w3.org/2000/svg")
 
     def get_svg_text(self):
         """Return text representation of svg"""
-        return DOCTYPE + ElementTree.tostring(self.__root)
+        return DOCTYPE + ElementTree.tostring(self.__root, method="html")
 
     def get_size(self):
         """self -> (int, int)
@@ -74,3 +75,13 @@ class SvgImage():
                 color = el.attrib.get(attr)
                 if color in from_colors:
                     el.set(attr, colors_translate[color])
+
+    def resize(self, scale_width, scale_height):
+        """
+        self, float, float -> self
+        Method for resize image.
+        Width and height multiply at scale cooficent.
+        """
+        root_width, root_height = self.get_size()
+        self.__root.set("width", str(root_width * scale_width))
+        self.__root.set("height", str(root_width * scale_height))
