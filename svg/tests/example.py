@@ -19,6 +19,9 @@ s.return_original()
 s.rotate(30)
 s.get_svg_file("result_svg_30.svg")
 
-
+s.return_original()
+s.scale(2, 1)
+s.rotate(30)
+s.get_svg_file("result_svg_s30.svg")
 # s.scale(2, 3)
 

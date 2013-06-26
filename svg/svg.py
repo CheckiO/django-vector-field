@@ -92,11 +92,15 @@ class SvgImage():
         Method for scale image.
         Width and height multiply at scale coefficient.
         """
+        g = ElementTree.Element(
+            "g",
+            {"transform":
+             "scale({0} {1})".format(scale_width, scale_height)})
+
         for el in list(self.__root):
-            tr = el.attrib.get("transform", "")
-            el.set(
-                "transform",
-                tr + " scale({0} {1})".format(scale_width, scale_height))
+            g.append(el)
+            # self.__root.remove(el)
+        self.__root.append(g)
         root_width, root_height = self.get_size()
         new_width = str(root_width * scale_width)
         new_height = str(root_width * scale_height)
