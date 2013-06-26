@@ -5,6 +5,7 @@ except ImportError:
 
 from xml.etree import ElementTree
 import re
+from math import cos, sin, radians
 
 COLORS_ATTR = {'fill': 'fill-opacity', 'stroke': 'stroke-opacity'}
 DOCTYPE = """<?xml version="1.0" encoding="UTF-8"?>
@@ -93,3 +94,16 @@ class SvgImage():
         root_width, root_height = self.get_size()
         self.__root.set("width", str(root_width * scale_width))
         self.__root.set("height", str(root_width * scale_height))
+
+    def rotate(self, angle, resize=False):
+        """
+        self, float, bool -> self
+        Rotate the object at clockwise direction for angle in degree .
+        """
+        root_width, root_height = self.get_size()
+        rad = radians(angle)
+        new_width = cos(rad) * root_width + sin(rad) * root_height
+        new_height = cos(rad) * root_height + sin(rad) * root_width
+        for el in self.__root.children():
+            pass
+
