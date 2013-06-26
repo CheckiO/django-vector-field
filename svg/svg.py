@@ -37,15 +37,47 @@ class SvgImage():
         temp_re = re.match("^{.*?}", self.__root.tag)
         self.__xlmns = temp_re.group() if temp_re else {}
         ElementTree.register_namespace("", "http://www.w3.org/2000/svg")
+        #fix ViewBox after some programs
+        try:
+            lower_root_keys = get_lower_keys(self.__root.attrib)
+            viewbox_key = lower_root_keys.get("viewbox", "viewBox")
+            viewbox = self.__root.attrib.get(viewbox_key, None)
+            if viewbox:
+                viewbox_values = re.findall(
+                    r"(\d+)[, ]+(\d+)[, ]+(\d+)[, ]+(\d+)",
+                    viewbox)
+                self.__root.set(viewbox_key,
+                                "{0} {1} {2} {3}".format(*viewbox_values[0]))
+            self.__source = DOCTYPE + ElementTree.tostring(self.__root)
+        except:
+            print(1)
+            pass
 
     def get_svg_text(self):
         """Return text representation of svg"""
-        return DOCTYPE + ElementTree.tostring(self.__root, method="html")
+        return DOCTYPE + ElementTree.tostring(self.__root)
 
     def save_svg_file(self, filename):
         """Save svg in file"""
         with open(filename, "w") as f:
             f.write(self.get_svg_text())
+
+    def save_png_file(self, filename):
+        """
+        Save in png file.
+        It's use cairo module. Sometimes it can to fail with some unexpected
+        attribute in svg file. For this it wrapped with try-except and return
+        false or true if all ok.
+        """
+        try:
+            with open(filename, "w") as f:
+                png = cairosvg.surface.PNGSurface.convert(self.get_svg_text())
+                f.write(png)
+            return True
+        except IOError as er:
+            raise IOError(er)
+        except Exception as er:
+            return False
 
     def get_size(self):
         """self -> (float, float)
@@ -107,7 +139,7 @@ class SvgImage():
         self.__root.set("height", new_height)
         lower_root_keys = get_lower_keys(self.__root.attrib)
         self.__root.set(lower_root_keys.get("viewbox", "viewBox"),
-                        "0, 0, {0}, {1}".format(new_width, new_height))
+                        "0 0 {0} {1}".format(new_width, new_height))
 
     def resize(self, width, height):
         """
@@ -149,7 +181,7 @@ class SvgImage():
         self.__root.set("height", str(int(new_height)))
         lower_root_keys = get_lower_keys(self.__root.attrib)
         self.__root.set(lower_root_keys.get("viewbox", "viewBox"),
-                        "0, 0, {0}, {1}".format(new_width, new_height))
+                        "0 0 {0} {1}".format(new_width, new_height))
 
     def return_original(self):
         """

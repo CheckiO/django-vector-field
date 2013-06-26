@@ -23,5 +23,8 @@ s.return_original()
 s.scale(2, 1)
 s.rotate(30)
 s.save_svg_file("result_svg_s30.svg")
+result_save = s.save_png_file("result_png_s30.png")
 # s.scale(2, 3)
 
+s.return_original()
+result_save = s.save_png_file("result_png.png")

@@ -1,5 +1,6 @@
 *.pyc
 .idea
 svg/tests/result_svg*.svg
+svg/tests/result_png*.png
 svg/tests/example.py
 
