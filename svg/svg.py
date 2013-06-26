@@ -103,7 +103,16 @@ class SvgImage():
         self.__root.set("width", new_width)
         self.__root.set("height", new_height)
         lower_root_keys = get_lower_keys(self.__root.attrib)
-        self.__root.set(lower_root_keys.get("viewbox", "viewBox"), "0, 0, {0}, {1}".format(new_width, new_height))
+        self.__root.set(lower_root_keys.get("viewbox", "viewBox"),
+                        "0, 0, {0}, {1}".format(new_width, new_height))
+
+    def resize(self, width, height):
+        """
+        self, float, float -> self
+        Method for resize image at new size.
+        """
+        root_width, root_height = self.get_size()
+        self.scale(float(width) / root_width, float(height) / root_height)
 
     def rotate(self, angle, resize=False):
         """
