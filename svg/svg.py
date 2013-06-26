@@ -6,6 +6,7 @@ except ImportError:
 from xml.etree import ElementTree
 import re
 from math import cos, sin, radians
+import tools
 
 COLORS_ATTR = {'fill': 'fill-opacity', 'stroke': 'stroke-opacity'}
 DOCTYPE = """<?xml version="1.0" encoding="UTF-8"?>
@@ -85,15 +86,24 @@ class SvgImage():
                 if color in from_colors:
                     el.set(attr, colors_translate[color])
 
-    def resize(self, scale_width, scale_height):
+    def scale(self, scale_width, scale_height):
         """
         self, float, float -> self
-        Method for resize image.
+        Method for scale image.
         Width and height multiply at scale coefficient.
         """
+        for el in list(self.__root):
+            tr = el.attrib.get("transform", "")
+            el.set(
+                "transform",
+                tr + " scale({0} {1})".format(scale_width, scale_height))
         root_width, root_height = self.get_size()
-        self.__root.set("width", str(root_width * scale_width))
-        self.__root.set("height", str(root_width * scale_height))
+        new_width = str(root_width * scale_width)
+        new_height = str(root_width * scale_height)
+        self.__root.set("width", new_width)
+        self.__root.set("height", new_height)
+        lower_root_keys = get_lower_keys(self.__root.attrib)
+        self.__root.set(lower_root_keys.get("viewbox", "viewBox"), "0, 0, {0}, {1}".format(new_width, new_height))
 
     def rotate(self, angle, resize=False):
         """
@@ -113,3 +123,16 @@ class SvgImage():
                                                    root_height / 2))
         self.resize(new_width, new_height)
 
+
+
+
+def get_lower_keys(dictionary):
+    """
+    dict -> dict
+    Get dictionary and create new dictionary with lowercase keys and keys from
+    original dict as values.
+
+    >>> get_lower_keys({"viewBox": 1, "VIEW": 2})
+    {'viewbox': 'viewBox', 'view': 'VIEW'}
+    """
+    return dict([(k.lower(), k) for k in dictionary.keys()])
