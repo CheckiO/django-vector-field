@@ -104,6 +104,12 @@ class SvgImage():
         rad = radians(angle)
         new_width = cos(rad) * root_width + sin(rad) * root_height
         new_height = cos(rad) * root_height + sin(rad) * root_width
-        for el in self.__root.children():
-            pass
+        for el in list(self.__root):
+            tr = el.attrib.get("transform", "")
+            el.set(
+                "transform",
+                tr + " rotate({0} {1} {2})".format(angle,
+                                                   root_width / 2,
+                                                   root_height / 2))
+        self.resize(new_width, new_height)
 
