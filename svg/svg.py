@@ -95,11 +95,11 @@ class SvgImage():
         g = ElementTree.Element(
             "g",
             {"transform":
-             "scale({0} {1})".format(scale_width, scale_height)})
+                 "scale({0} {1})".format(scale_width, scale_height)})
 
         for el in list(self.__root):
             g.append(el)
-            # self.__root.remove(el)
+            self.__root.remove(el)
         self.__root.append(g)
         root_width, root_height = self.get_size()
         new_width = str(root_width * scale_width)
@@ -127,20 +127,25 @@ class SvgImage():
         rad = radians(angle)
         new_width = cos(rad) * root_width + sin(rad) * root_height
         new_height = cos(rad) * root_height + sin(rad) * root_width
-        print(locals())
-        for el in list(self.__root):
-            tr = el.attrib.get("transform", "")
-            rotate = "rotate({0} {1} {2})".format(angle,
-                                                  root_width / 2,
-                                                  root_height / 2)
-            translate = "translate({0}, {1})".format(
-                (new_width - root_width) / 2,
-                (new_height - root_height) / 2,
 
-            )
-            el.set(
-                "transform",
-                " ".join([tr, translate, rotate]))
+        rotate = "rotate({0} {1} {2})".format(angle,
+                                              root_width / 2,
+                                              root_height / 2)
+        translate = "translate({0}, {1})".format(
+            (new_width - root_width) / 2,
+            (new_height - root_height) / 2,
+
+        )
+
+        g = ElementTree.Element(
+            "g",
+            {"transform": " ".join([translate, rotate])})
+
+        for el in list(self.__root):
+            g.append(el)
+            self.__root.remove(el)
+        self.__root.append(g)
+
         self.__root.set("width", str(int(new_width)))
         self.__root.set("height", str(int(new_height)))
         lower_root_keys = get_lower_keys(self.__root.attrib)

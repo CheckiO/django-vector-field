@@ -8,7 +8,7 @@ s.resize(200, 300)
 s.get_svg_file("result_svg_resized.svg")
 
 s.return_original()
-# s.rotate(90)
+s.rotate(90)
 s.get_svg_file("result_svg_right.svg")
 
 s.return_original()
