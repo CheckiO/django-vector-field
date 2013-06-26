@@ -6,7 +6,6 @@ except ImportError:
 from xml.etree import ElementTree
 import re
 from math import cos, sin, radians
-import tools
 
 COLORS_ATTR = {'fill': 'fill-opacity', 'stroke': 'stroke-opacity'}
 DOCTYPE = """<?xml version="1.0" encoding="UTF-8"?>
@@ -43,7 +42,7 @@ class SvgImage():
         """Return text representation of svg"""
         return DOCTYPE + ElementTree.tostring(self.__root, method="html")
 
-    def get_svg_file(self, filename):
+    def save_svg_file(self, filename):
         """Save svg in file"""
         with open(filename, "w") as f:
             f.write(self.get_svg_text())
