@@ -7,8 +7,8 @@ class ResizeTestCase(unittest.TestCase):
     def setUp(self):
         self.icon = SvgImage(tools.get_svg_file())
 
-    def test_resize_twice(self):
-        self.icon.resize(2, 2)
+    def test_scale_twice(self):
+        self.icon.scale(2, 2)
         expected = (256, 256)
         size = self.icon.get_size()
         self.assertEqual(expected, size)
