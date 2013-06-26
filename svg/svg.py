@@ -49,12 +49,12 @@ class SvgImage():
             f.write(self.get_svg_text())
 
     def get_size(self):
-        """self -> (int, int)
+        """self -> (float, float)
         Get size of image.
         Tuple of two int -- width and height
         """
-        return (int(self.__root.attrib['width'].replace('px', '')),
-                int(self.__root.attrib['height'].replace('px', '')))
+        return (float(self.__root.attrib['width'].replace('px', '')),
+                float(self.__root.attrib['height'].replace('px', '')))
 
     def get_elements_colors(self):
         """self -> list[dict,]
@@ -123,16 +123,32 @@ class SvgImage():
         rad = radians(angle)
         new_width = cos(rad) * root_width + sin(rad) * root_height
         new_height = cos(rad) * root_height + sin(rad) * root_width
+        print(locals())
         for el in list(self.__root):
             tr = el.attrib.get("transform", "")
+            rotate = "rotate({0} {1} {2})".format(angle,
+                                                  root_width / 2,
+                                                  root_height / 2)
+            translate = "translate({0}, {1})".format(
+                (new_width - root_width) / 2,
+                (new_height - root_height) / 2,
+
+            )
             el.set(
                 "transform",
-                tr + " rotate({0} {1} {2})".format(angle,
-                                                   root_width / 2,
-                                                   root_height / 2))
-        self.resize(new_width, new_height)
+                " ".join([tr, translate, rotate]))
+        self.__root.set("width", str(int(new_width)))
+        self.__root.set("height", str(int(new_height)))
+        lower_root_keys = get_lower_keys(self.__root.attrib)
+        self.__root.set(lower_root_keys.get("viewbox", "viewBox"),
+                        "0, 0, {0}, {1}".format(new_width, new_height))
 
-
+    def return_original(self):
+        """
+        self -> self
+        Return object at original form.
+        """
+        self.__root = ElementTree.XML(self.__source)
 
 
 def get_lower_keys(dictionary):
