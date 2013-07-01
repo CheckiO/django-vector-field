@@ -1,0 +1,264 @@
+import cairosvg
+
+from xml.etree import ElementTree
+import re
+from math import cos, sin, radians
+from django.db import models
+from django.core.files import File
+from django.db.models.fields.files import FieldFile
+import os
+
+
+COLORS_ATTR = {'fill': 'fill-opacity', 'stroke': 'stroke-opacity'}
+DOCTYPE = """<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+"""
+
+
+def read_svg(filename):
+    with open(filename) as f:
+        source = f.read()
+    root = ElementTree.XML(source)
+    try:
+        lower_root_keys = get_lower_keys(root.attrib)
+        viewbox_key = lower_root_keys.get("viewbox", "viewBox")
+        viewbox = root.attrib.get(viewbox_key, None)
+        if viewbox:
+            viewbox_values = re.findall(
+                r"(\d+)[, ]+(\d+)[, ]+(\d+)[, ]+(\d+)",
+                viewbox)
+            root.set(viewbox_key,
+                     "{0} {1} {2} {3}".format(*viewbox_values[0]))
+    except Exception:
+        pass
+    return root
+
+
+def save_png(svg_xml):
+    """
+    return png file content.
+    It's use cairo module. Sometimes it can to fail with some unexpected
+    attribute in svg file. For this it wrapped with try-except and return
+    false or true if all ok.
+    """
+    svg_text = DOCTYPE + ElementTree.tostring(svg_xml)
+    try:
+        png = cairosvg.surface.PNGSurface.convert(svg_text)
+        return png, "png"
+    except Exception as er:
+        return None, er
+
+
+class SvgImage():
+    """
+    The class for working with images in svg format.
+    For parsing and changing using simple xml parsing.
+    """
+
+    def __init__(self, source=None, filename=None):
+        """
+        Create instance from file object or from text
+        """
+        if filename:
+            with open(filename) as f:
+                source = f.read()
+        if type(source) == file:
+            self.__source = source.read()
+        elif type(source) in (str, unicode, basestring):
+            self.__source = source
+        else:
+            raise TypeError("Must be file object or string")
+        parsed_svg = ElementTree.XML(self.__source)
+        self.__root = parsed_svg
+        temp_re = re.match("^{.*?}", self.__root.tag)
+        self.__xlmns = temp_re.group() if temp_re else {}
+        ElementTree.register_namespace("", "http://www.w3.org/2000/svg")
+        #fix ViewBox after some programs
+        try:
+            lower_root_keys = get_lower_keys(self.__root.attrib)
+            viewbox_key = lower_root_keys.get("viewbox", "viewBox")
+            viewbox = self.__root.attrib.get(viewbox_key, None)
+            if viewbox:
+                viewbox_values = re.findall(
+                    r"(\d+)[, ]+(\d+)[, ]+(\d+)[, ]+(\d+)",
+                    viewbox)
+                self.__root.set(viewbox_key,
+                                "{0} {1} {2} {3}".format(*viewbox_values[0]))
+            self.__source = DOCTYPE + ElementTree.tostring(self.__root)
+        except:
+            print(1)
+            pass
+
+    def get_svg_text(self):
+        """Return text representation of svg"""
+        return DOCTYPE + ElementTree.tostring(self.__root)
+
+    def save_svg_file(self, filename):
+        """Save svg in file"""
+        with open(filename, "w") as f:
+            f.write(self.get_svg_text())
+
+
+    def get_size(self):
+        """self -> (float, float)
+        Get size of image.
+        Tuple of two int -- width and height
+        """
+        return (float(self.__root.attrib['width'].replace('px', '')),
+                float(self.__root.attrib['height'].replace('px', '')))
+
+    def get_elements_colors(self):
+        """self -> list[dict,]
+        Get elements' colors info.
+        Return a list of dicts with color, type of color, tag and id of element.
+        """
+        res = []
+
+        for el in self.__root.iter():
+            for attr, attr_opacity in COLORS_ATTR.items():
+                if (el.attrib.get(attr_opacity, '100') != '0' and
+                        el.attrib.get(attr)):
+                    res.append({'color': el.attrib[attr],
+                                'type': attr,
+                                'tag': el.tag.replace(self.__xlmns, ''),
+                                'id': el.attrib.get('id', '')})
+        return res
+
+    def change_colors(self, colors_translate):
+        """self, dict -> self.
+        Change colors inside Svg with translation dict.
+        Translation colors dict: key is original color, value is which to set.
+        Colors are strings.
+        """
+        from_colors = colors_translate.keys()
+        for el in self.__root.iter():
+            for attr in COLORS_ATTR.keys():
+                color = el.attrib.get(attr)
+                if color in from_colors:
+                    el.set(attr, colors_translate[color])
+
+    def scale(self, scale_width, scale_height):
+        """
+        self, float, float -> self
+        Method for scale image.
+        Width and height multiply at scale coefficient.
+        """
+        g = ElementTree.Element(
+            "g",
+            {"transform":
+                 "scale({0} {1})".format(scale_width, scale_height)})
+
+        for el in list(self.__root):
+            g.append(el)
+            self.__root.remove(el)
+        self.__root.append(g)
+        root_width, root_height = self.get_size()
+        new_width = str(root_width * scale_width)
+        new_height = str(root_width * scale_height)
+        self.__root.set("width", new_width)
+        self.__root.set("height", new_height)
+        lower_root_keys = get_lower_keys(self.__root.attrib)
+        self.__root.set(lower_root_keys.get("viewbox", "viewBox"),
+                        "0 0 {0} {1}".format(new_width, new_height))
+
+    def resize(self, width, height):
+        """
+        self, float, float -> self
+        Method for resize image at new size.
+        """
+        root_width, root_height = self.get_size()
+        self.scale(float(width) / root_width, float(height) / root_height)
+
+    def rotate(self, angle, resize=False):
+        """
+        self, float, bool -> self
+        Rotate the object at clockwise direction for angle in degree .
+        """
+        root_width, root_height = self.get_size()
+        rad = radians(angle)
+        new_width = cos(rad) * root_width + sin(rad) * root_height
+        new_height = cos(rad) * root_height + sin(rad) * root_width
+
+        rotate = "rotate({0} {1} {2})".format(angle,
+                                              root_width / 2,
+                                              root_height / 2)
+        translate = "translate({0}, {1})".format(
+            (new_width - root_width) / 2,
+            (new_height - root_height) / 2,
+
+        )
+
+        g = ElementTree.Element(
+            "g",
+            {"transform": " ".join([translate, rotate])})
+
+        for el in list(self.__root):
+            g.append(el)
+            self.__root.remove(el)
+        self.__root.append(g)
+
+        self.__root.set("width", str(int(new_width)))
+        self.__root.set("height", str(int(new_height)))
+        lower_root_keys = get_lower_keys(self.__root.attrib)
+        self.__root.set(lower_root_keys.get("viewbox", "viewBox"),
+                        "0 0 {0} {1}".format(new_width, new_height))
+
+    def return_original(self):
+        """
+        self -> self
+        Return object at original form.
+        """
+        self.__root = ElementTree.XML(self.__source)
+
+
+def get_lower_keys(dictionary):
+    """
+    dict -> dict
+    Get dictionary and create new dictionary with lowercase keys and keys from
+    original dict as values.
+
+    >>> get_lower_keys({"viewBox": 1, "VIEW": 2})
+    {'viewbox': 'viewBox', 'view': 'VIEW'}
+    """
+    return dict([(k.lower(), k) for k in dictionary.keys()])
+
+
+class SvgManipulationField(models.FileField):
+    def __init__(self, verbose_name=None, name=None, upload_to=None,
+                 versions=None, **kwargs):
+        self.versions = versions
+        super(SvgManipulationField, self).__init__(verbose_name, name,
+                                                   upload_to, **kwargs)
+
+    def get_db_prep_save(self, value, connection):
+        full_path = value.path
+        dir_path, filename = os.path.split(full_path)
+        try:
+            base_name, extension = filename.rsplit(".", 1)
+        except ValueError:
+            raise ValueError("Must be SVG file.")
+        for version_name, manipulations, version_default in self.versions:
+            version_dir = os.path.join(dir_path, version_name)
+            if not os.path.exists(version_dir):
+                os.makedirs(version_dir)
+            component = read_svg(full_path)
+            try:
+                for manipulation_func, arguments in manipulations[:-1]:
+                    component = manipulation_func(component, arguments)
+            except IndexError:
+                raise TypeError(
+                    "Each manipulation must be a two-element tuple.")
+            try:
+                result, additional = manipulations[-1](component)
+            except ValueError:
+                raise TypeError(
+                    "Last function must be convertor and return tuple.")
+            if result:
+                version_filename = os.path.join(
+                    version_dir, ".".join([base_name, additional]))
+                with open(version_filename, "w") as version_f:
+                    version_f.write(result)
+            else:
+                raise TypeError(
+                    "Problem with convertor: {0}".format(additional))
+        super(SvgManipulationField, self).get_db_prep_save(value, connection)
