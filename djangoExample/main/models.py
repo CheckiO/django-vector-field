@@ -37,7 +37,7 @@ class Task(models.Model):
                     RecolourManipulation(from_color="#FFFFFF",
                                          to_color="#000000")
                 ),
-                converter=SvgConverter()
+                converter=PngConverter()
             )
         )
     )

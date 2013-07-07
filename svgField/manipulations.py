@@ -78,6 +78,8 @@ class ScaleManipulation(Manipulation):
     def __init__(self, scale=(1, 1)):
         if type(scale) is int or type(scale) is float:
             self.scale = (scale, scale)
+        else:
+            self.scale = scale
 
     def manipulate(self, svg_root):
 
@@ -144,7 +146,7 @@ class ResizeManipulation(Manipulation):
     def __init__(self, size):
         self.size = size
 
-    def manipualte(self, svg_root):
+    def manipulate(self, svg_root):
         """
         Element, [float, float] -> Element
         Method for resize image at new size.
