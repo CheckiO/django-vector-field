@@ -28,10 +28,10 @@ class SvgManipulationField(models.FileField):
             if f_file:
                 base_url, name = f_file.url.rsplit("/", 1)
                 v_name = name.rsplit(".", 1)[0] + "." + v.converter.extension
-                v_url = "/".join([base_url, v["name"], v_name])
-                setattr(f_file, v["name"] + "_url", v_url)
+                v_url = "/".join([base_url, v.name, v_name])
+                setattr(f_file, v.name + "_url", v_url)
             else:
-                setattr(f_file, v["name"] + "_url", v["default_url"])
+                setattr(f_file, v.name + "_url", v.default_url)
 
     def contribute_to_class(self, cls, name):
         """

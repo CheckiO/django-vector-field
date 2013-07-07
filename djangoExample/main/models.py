@@ -28,6 +28,7 @@ class Task(models.Model):
                     })
                 ),
                 converter=PngConverter(),
+                default_url="/media/123"
             ),
             ManipulationVersion(
                 name="big_log",

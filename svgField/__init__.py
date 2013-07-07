@@ -5,10 +5,11 @@ from manipulations import Manipulation
 
 
 class ManipulationVersion():
-    def __init__(self, name, manipulators=(), converter=SvgConverter()):
+    def __init__(self, name, manipulators=(), converter=SvgConverter(), default_url=""):
         self.name = name
         self.manipulators = manipulators
         self.converter = converter
+        self.default_url = default_url
 
     def write_version_file(self, base_path):
         dir_path, filename = os.path.split(base_path)
