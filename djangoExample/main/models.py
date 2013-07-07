@@ -13,6 +13,7 @@ from svgField.manipulations import ScaleManipulation, RecolourManipulation, \
 
 # Create your models here.
 class Task(models.Model):
+    name = models.CharField(verbose_name="name", max_length=100)
     logo = SvgManipulationField(
         verbose_name="Logo",
         upload_to="logos/",

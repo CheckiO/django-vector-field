@@ -10,18 +10,18 @@
 
 <body>
     <table>
-        {% for i in images %}
+        {% for t in tasks %}
         <tr>
             <td>
-                {{ i.name }}
+                {{ t.name }}
             </td>
             <td>
-                {% if i.image %}
-                    <embed src="{{ i.image.url }}"></embed>
+                {% if t.logo %}
+                    <embed src="{{ t.logo.url }}"></embed>
                 {% endif %}
             </td>
             <td>
-                <img src="{{ i.image.small_png_url }}"/>
+                <img src="{{ i.logo.small.url }}"/>
             </td>
         </tr>
         {% endfor %}
