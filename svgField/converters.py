@@ -1,16 +1,44 @@
+from xml.etree import ElementTree
 import cairosvg
 
+DOCTYPE = """<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+"""
 
-def save_png(svg_xml):
-    """
-    return png file content.
-    It's use cairo module. Sometimes it can to fail with some unexpected
-    attribute in svg file. For this it wrapped with try-except and return
-    false or true if all ok.
-    """
-    svg_text = DOCTYPE + ElementTree.tostring(svg_xml)
-    try:
-        png = cairosvg.surface.PNGSurface.convert(svg_text)
-        return png
-    except Exception as er:
-        return None, er
+
+class Converter():
+    def __init__(self):
+        pass
+
+    @property
+    def extension(self):
+        return ""
+
+    def convert(self, svg_xml, write_to=None):
+        raise NotImplementedError
+
+
+class PngConverter(Converter):
+    @property
+    def extension(self):
+        return "png"
+
+    def convert(self, svg_xml, write_to=None):
+        svg_text = DOCTYPE + ElementTree.tostring(svg_xml)
+        #PNGSurface crush at every error in svg
+        try:
+            png = cairosvg.surface.PNGSurface.convert(svg_text, write_to=write_to)
+            return png
+        except Exception:
+            return None
+
+
+class SvgConverter(Converter):
+    @property
+    def extension(self):
+        return "svg"
+
+    def convert(self, svg_xml, write_to=None):
+        svg_txt = DOCTYPE + ElementTree.tostring(svg_xml)
+        svg = cairosvg.surface.SVGSurface.convert(svg_txt, write_to=write_to)
+        return svg
