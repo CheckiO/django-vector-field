@@ -4,7 +4,22 @@ from django.db import models
 from django.db.models.fields.files import FieldFile
 import os
 
-
+class VersionFile():
+    def __init__(self, field_file, version):
+        if not field_file:
+            self.path = None
+            self.url = version.default_url
+        else:
+            base_url, file_name = field_file.url.rsplit("/", 1)
+            base_name = file_name.rsplit(".", 1)[0]
+            base_path = os.path.split(field_file.path)[0]
+            ext = version.converter.extension
+            ver_file_name = ".".join([base_name, ext]) if ext else ""
+            self.path = os.path.join(base_path, version.name, ver_file_name)
+            if os.path.exists(self.path):
+                self.url = "/".join([base_url, version.name, ver_file_name])
+            else:
+                self.url = version.default_url
 
 class SvgManipulationField(models.FileField):
 
@@ -22,16 +37,14 @@ class SvgManipulationField(models.FileField):
 
     def __add_attributes(self, instance, **kwargs):
 
-        f_file = getattr(instance, self.name)
+        field_file = getattr(instance, self.name)
 
         for v in self.versions:
-            if f_file:
-                base_url, name = f_file.url.rsplit("/", 1)
-                v_name = name.rsplit(".", 1)[0] + "." + v.converter.extension
-                v_url = "/".join([base_url, v.name, v_name])
-                setattr(f_file, v.name + "_url", v_url)
+            if field_file:
+                ver_file = VersionFile(field_file, v)
             else:
-                setattr(f_file, v.name + "_url", v.default_url)
+                ver_file = VersionFile(None, v)
+            setattr(field_file, v.name, ver_file)
 
     def contribute_to_class(self, cls, name):
         """

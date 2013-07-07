@@ -7,5 +7,6 @@ def home(request):
     for t in tasks:
         print t.logo
         print t.logo.small.url, t.logo.big_log.url
+    print(tasks)
     return render(request, "base.html", locals())
 
