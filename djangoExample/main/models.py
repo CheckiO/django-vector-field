@@ -17,6 +17,7 @@ class Task(models.Model):
     logo = SvgManipulationField(
         verbose_name="Logo",
         upload_to="logos/",
+        null=True, blank=True,
         versions=(
             ManipulationVersion(
                 name="small",
@@ -29,7 +30,7 @@ class Task(models.Model):
                     })
                 ),
                 converter=PngConverter(),
-                default_url="/media/123"
+                default_url="/media/123.png"
             ),
             ManipulationVersion(
                 name="big_log",
@@ -38,7 +39,8 @@ class Task(models.Model):
                     RecolourManipulation(from_color="#FFFFFF",
                                          to_color="#000000")
                 ),
-                converter=PngConverter()
+                converter=PngConverter(),
+                default_url="/media/123.png"
             )
         )
     )
