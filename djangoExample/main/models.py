@@ -1,11 +1,13 @@
-from django.db import models
 import sys
 import os
 
+from django.db import models
+
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', ".."))
 
-from svgManipulationField import SvgManipulationField
-from svgManipulationField import save_png, scale, rotate
+from svgField.svgManipulationField import SvgManipulationField
+from svgField.svgManipulationField import save_png, scale, rotate
 
 
 # Create your models here.
