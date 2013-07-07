@@ -3,25 +3,40 @@ import os
 
 from django.db import models
 
-
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', ".."))
 
-from svgField.svgManipulationField import SvgManipulationField
-from svgField.svgManipulationField import save_png, scale, rotate
+from svgField import SvgManipulationField, ManipulationVersion
+from svgField.converters import PngConverter, SvgConverter
+from svgField.manipulations import ScaleManipulation, RecolourManipulation, \
+    RotateManipulation, ResizeManipulation, MultiRecolourManipulation
 
 
 # Create your models here.
-class TestM(models.Model):
-    name = models.CharField(max_length=30)
-    image = SvgManipulationField(
+class Task(models.Model):
+    logo = SvgManipulationField(
         verbose_name="Logo",
-        upload_to="media/",
-        versions=[
-            {"name": "small_png",
-             "manipulations": [(scale, [2, 2]), (rotate, 30)],
-             "converter": save_png,
-             "extension": "png",
-             "default_url": "http://www.w3.org/Icons/w3c_home"}
-        ],
-        null=True, blank=True
+        upload_to="logos/",
+        versions=(
+            ManipulationVersion(
+                name="small",
+                manipulators=(
+                    ScaleManipulation(scale=(2, 2)),
+                    RotateManipulation(angle=30),
+                    MultiRecolourManipulation(colors_translate={
+                        "#FFFFFF": "#000000",
+                        "#000000": "#FF0000"
+                    })
+                ),
+                converter=PngConverter(),
+            ),
+            ManipulationVersion(
+                name="big_log",
+                manipulators=(
+                    ResizeManipulation(size=(1024, 1024)),
+                    RecolourManipulation(from_color="#FFFFFF",
+                                         to_color="#000000")
+                ),
+                converter=SvgConverter()
+            )
+        )
     )

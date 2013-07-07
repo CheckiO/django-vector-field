@@ -1,2 +1,3 @@
 cairosvg
 pycairo
+django
